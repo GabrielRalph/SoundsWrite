@@ -592,6 +592,8 @@ class SoundsWriteBooks extends ShadowElement {
         } else {
             this.root.styles = { "--left-keepout-width": "0px" }
         }
+
+        document.body.toggleAttribute("loaded", true)
     }
 
     static get usedStyleSheets() {

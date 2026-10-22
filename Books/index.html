@@ -11,6 +11,9 @@
             font-family: "Jost", sans-serif;
             background: rgb(41, 41, 41);
         }
+        body:not([loaded]) sounds-write-books {
+            display: none;
+        }
         sounds-write-books {
             display: block;
             position: absolute;
@@ -20,33 +23,7 @@
             bottom: 0;
             background: white;
         }
-        /* .white {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 20vw;
-            bottom: 0;
-            background: white;
-            display: grid;
-            grid-template-rows: repeat(5, 1fr);
-            padding: .3em;
-            box-sizing: border-box;
-
-        }
-        .white > div {
-            background: rgb(177, 9, 9);
-            color: white;
-            font-size: 2em;
-            border-radius: .3em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            flex-direction: column;
-        }
-        .white > div i-bw {
-            font-size: 2em;
-        } */
+        
 
     </style>
 </head>
