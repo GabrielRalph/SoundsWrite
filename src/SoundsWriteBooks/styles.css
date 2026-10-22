@@ -175,6 +175,7 @@ search-window {
     display: grid;
     column-gap: 2em;
     grid-template-columns: repeat(auto-fill, minmax(12em, 1fr));
+    align-content: start;
     overflow-y: scroll;
 }
 .top-bar {
@@ -221,6 +222,9 @@ access-button.book-icon {
     padding: 1em;
     border-radius: 0.5em;
     gap: 0.5em
+}
+access-button.book-icon[hidden] {
+    display: none;
 }
 access-button.book-icon:hover {
     background-color: rgba(0, 0, 0, 0.156);

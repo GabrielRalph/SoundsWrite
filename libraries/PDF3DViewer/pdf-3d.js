@@ -808,7 +808,8 @@ class PDFViewer3D extends HTMLElement {
     #render(addOverlay = false) {
         if (this.#renderQueued) return;
         this.#renderQueued = true;
-        if (addOverlay) this.#addOverlay = true;
+
+        if (addOverlay === true) this.#addOverlay = true;
 
         window.requestAnimationFrame(() => {
             this.renderer.render(this.scene, this.camera);

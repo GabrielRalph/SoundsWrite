@@ -7,11 +7,9 @@ import { AccessEvent } from "../access-buttons.js";
 
 
 class CustomSelection extends SvgPlus {
-    constructor(options) {
+    constructor(options, placeholder = "") {
         super("select");
-        this.createChild("option", {
-            // <option value="" disabled selected hidden>Choose an option...</option>
-        })
+        this.createChild("option", { value: "", content: placeholder });
         for (const option of options) {
             this.createChild("option", {  content: option });
         }
@@ -49,31 +47,53 @@ class SearchWindow extends SvgPlus {
         super("search-window")
         const topBar = this.createChild("div", { class: "top-bar" });
         let searchArea = topBar.createChild("div", { class: "search-area" });
-        this.searchInput = searchArea.createChild("input", { type: "text", placeholder: "Search by name" });
+        this.searchInput = searchArea.createChild("input", { type: "text", placeholder: "Search by name or sound" });
         searchArea.createChild("i-bw", { "i": "search" });
 
         this.unitSelection = topBar.createChild(
-            CustomSelection, 
-            {
-                placeholder: "Select A Unit"
-            }, 
-            new Array(14).fill(0).map((_,i)=>`Unit ${i+1}`)
+            CustomSelection,
+            {},
+            new Array(14).fill(0).map((_,i) => i)
+                .filter(i => !(i==2 || i==12))
+                .map(i => `Unit ${i+1}`),
+            "All Units"
         );
-        this.unitSelection.value = null;
+        this.unitSelection.value = "";
 
-
+        this.searchInput.addEventListener("input", () => this.filter());
+        this.unitSelection.addEventListener("change", () => this.filter());
 
         this.mainArea = this.createChild("div", { class: "main-area" });
+        this.bookIcons = [];
     }
 
     set database(value) {
         this._database = value;
+        this.mainArea.innerHTML = "";
+        this.bookIcons = [];
         for (const catID in this._database.categories) {
             const books = value.categories[catID];
             for (let i = 0; i < books.length; i++) {
                 const book = books[i];
-                this.mainArea.createChild(BookIcon, {}, book, catID, i);
+                const icon = this.mainArea.createChild(BookIcon, {}, book, catID, i);
+                this.bookIcons.push({ icon, book });
             }
+        }
+        this.filter();
+    }
+
+    /**
+     * Shows only the books whose title or sound detail contains the search
+     * text and, if a unit is selected, that belong to that unit.
+     */
+    filter() {
+        const query = this.searchInput.value.trim().toLowerCase();
+        const unit = this.unitSelection.value;
+        for (const { icon, book } of this.bookIcons) {
+            const searchText = `${book?.title || ""} ${book?.detail || ""}`.toLowerCase();
+            const matchesQuery = !query || searchText.includes(query);
+            const matchesUnit = !unit || `Unit ${book?.unit}` === unit;
+            icon.toggleAttribute("hidden", !(matchesQuery && matchesUnit));
         }
     }
 }

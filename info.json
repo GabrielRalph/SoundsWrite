@@ -5,5 +5,5 @@
   "version": "1.0.0",
   "description": "Preview a themed shopping list, remember the items, choose them from shelves, pack the purple bag, and review the result together in sync.",
   "author": "Squidly Gabriel Ralph",
-  "icon": "shopping-list-memory-game/screen-shots/memory-mart-icon.png"
+  "icon": "./Assets/logo-text.png"
 }
