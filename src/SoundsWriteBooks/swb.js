@@ -383,6 +383,9 @@ class PDFViewer extends SvgPlus {
                 },
             }
         }).createChild("i-bw", { "i": "delete-image" });
+
+        this.createChild("div", {class: "loader-box"})
+        .createChild("div", {class: "loader"});
     }
 
     updateState(trigger = true) {
