@@ -1,5 +1,6 @@
 import { GridIcon, GridLayout, ShadowElement } from "https://session.squidly.com.au/main/utilities.js";
 import { SoundsWritreDB } from "../../Assets/FourInARow/data.js";
+import "../BGImage/index.js"
 const SIZE = 5;
 const WINNING_PATTERNS = [
     /(0)(0)(0)(0)/gd,
@@ -157,8 +158,9 @@ class SoundsWriteFourInARow extends ShadowElement {
 
         this.home = this.createChild("div", {class: "home"});
 
-        this.home.createChild("img", {class: 'head', src: import.meta.resolve("../FourInARow/header.png")});
-        this.home.createChild("img", {class: 'logo', src: import.meta.resolve("../Assets/logo-banner.png")});
+        this.home.createChild("bg-img", {class: 'head', src: import.meta.resolve("../../Assets/FourInARow/header.png")});
+        this.home.createChild("div", {class: 'logo'})
+            .createChild("bg-img", {src: import.meta.resolve("../../Assets/logo-banner.png")});
         this.home.createChild(GridLayout, {}, 2,2).addGridIcons([
             [
                 { 
@@ -255,6 +257,7 @@ class SoundsWriteFourInARow extends ShadowElement {
         return [
             GridIcon.styleSheet,
             import.meta.resolve("./styles.css"),
+            import.meta.resolve("../BGImage/styles.css")
         ]
     }
 }

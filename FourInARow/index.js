@@ -14,3 +14,7 @@ if (window.SquidlyAPI) {
     });
 }
 
+SoundsWriteFourInARow.loadStyleSheets().then(() => {
+    document.body.toggleAttribute("loaded", true);
+});
+
