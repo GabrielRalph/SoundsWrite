@@ -1,0 +1,137 @@
+[shadow] {
+    height: 100%;
+    width: 100%;
+}
+
+[shadow] > * {
+    display: none;
+    height: 100%;
+    width: 100%;
+}
+
+.grid-icon b {
+    font-weight: 600;
+    font-size: 1.3em;
+}
+
+[shadow][mode = "home"] > .home {
+    display: grid;
+}
+[shadow][mode = "game"] > .game {
+    display: grid;
+}
+
+
+.home {
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+}
+
+
+.game .board-cont {
+    padding: 2em;
+}
+
+.game .board-cont .board {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    box-sizing: border-box;
+    aspect-ratio: 1;
+    margin: auto;
+}
+.game .players {
+    pointer-events: none;
+}
+
+.home img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    box-sizing: border-box;
+}
+.home img.head {
+    grid-row-start: 1;
+    grid-row-end: 4;
+    grid-column-start: 2;
+    grid-column-end: 5;
+}
+
+.home img.logo {
+    grid-row-start: 11;
+    grid-row-end: 13;
+    grid-column-start: 1;
+    grid-column-end: 16;
+    padding: 1em;
+}
+
+.home grid-layout {
+    grid-row-start: 4;
+    grid-row-end: 11;
+    grid-column-start: 2;
+    grid-column-end: 5;
+    font-size: 1.15em;
+}
+
+
+.board[won] {
+    pointer-events: none;
+    cursor: default;
+}
+
+.grid-icon[color-theme="1"] {
+    --main: #E6F5D9;
+    --tab: #d4f1ba;
+    --text: black;
+    --outline: #99e458;
+    --main-hover: #d4f1ba;
+    --tab-hover: #dbf1c8;
+    --main-active:  #caecac;
+    --tab-active: #bae297;
+    pointer-events: none;
+    cursor: default;
+}
+
+
+.grid-icon[color-theme="0"] {
+    --main: #D8F0FC;
+    --tab: #bde9ff;
+    --text: black;
+    --outline: #3B9BCB;
+    --main-hover: #bde9ff;
+    --tab-hover: #b0e5ff;
+    --main-active:  #abe3ff;
+    --tab-active: #82d5ff;
+    pointer-events: none;
+    cursor: default;
+
+}
+
+.board .grid-icon .card-icon rect {
+    rx: 1000 !important;
+    ry: 1000 !important;
+}
+
+
+.grid-icon[winning] {
+    animation: winning 1s ease-in-out infinite;
+}
+
+
+
+
+@keyframes winning {
+    0%{
+        transform: scale(0.97);
+        animation-timing-function: ease-in-out;
+    }
+    50%{
+        transform: scale(1.03);
+        animation-timing-function: ease-in-out;
+    }
+    100%{
+        transform: scale(0.97);
+    }
+} 
+

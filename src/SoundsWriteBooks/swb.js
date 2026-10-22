@@ -585,6 +585,9 @@ class SoundsWriteBooks extends ShadowElement {
             SquidlyAPI.firebaseOnValue("sw-main-state", (val) => {
                 this.state = JSON.parse(val);
             });
+            this.root.styles = { "--left-keepout-width": "20vw" }
+        } else {
+            this.root.styles = { "--left-keepout-width": "0px" }
         }
     }
 
