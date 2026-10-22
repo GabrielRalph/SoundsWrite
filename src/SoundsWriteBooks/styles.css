@@ -1,17 +1,17 @@
 :host {
     --input-border-color: rgba(0, 0, 0, 0.207);
     --input-border: 1.5px solid var(--input-border-color);
-
     --underline-color: rgb(26, 77, 246);
     --highlight-color: rgba(26, 77, 246, 0.3);
 }
+
+
 root-element {
     display: block;
     width: 100%;
     height: 100%;
     position: relative;
 
-    --left-keepout-width: 20vw;
     --min-padding: 1em;
 }
 
