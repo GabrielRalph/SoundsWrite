@@ -1,0 +1,60 @@
+
+pdf-viewer-3d {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.135));
+    position: relative;
+}
+
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+.overlay-box {
+    position: absolute;
+    z-index: 10;
+}
+.overlay-box .line-box {
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.15s ease;
+}
+.overlay-box .line-box:hover {
+    border-color: rgba(139, 0, 0, 0.192);
+}
+
+.word-box {
+    position: relative;
+}
+.word-box::before {
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    height: 150%;
+    top: 40%;
+    left: 0;
+    z-index: 1000;
+}
+
+.word-box:hover::before {
+    opacity: 1;
+}
+.word-box::after {
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    border-bottom: rgba(139, 0, 0, 0.864) 2px solid;
+    box-sizing: content-box;
+}
+.word-box:hover::after {
+    opacity: 1;
+}
+

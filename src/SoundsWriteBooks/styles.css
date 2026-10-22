@@ -1,0 +1,238 @@
+:host {
+    --input-border-color: rgba(0, 0, 0, 0.207);
+    --input-border: 1.5px solid var(--input-border-color);
+
+    --underline-color: rgb(26, 77, 246);
+    --highlight-color: rgba(26, 77, 246, 0.3);
+}
+root-element {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    --left-keepout-width: 20vw;
+    --min-padding: 1em;
+}
+
+root-element[mode="search"] search-window,
+root-element[mode="view"] .pdf-viewer-container {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+root-element[mode="view"] search-window,
+root-element[mode="search"] .pdf-viewer-container {
+    pointer-events: none;
+    opacity: 0;
+}
+
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~ PDF VIEWER ~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.pdf-viewer-container {
+    --side-region: calc(var(--left-keepout-width, 0) - var(--side-padding, 40px) + var(--min-padding, 1em));
+    position: absolute;
+    top: 0;
+    left: max(var(--side-region), 0px);
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    transition: opacity 0.3s ease;
+}
+
+access-button { 
+    cursor: pointer; 
+}
+
+/* ~~~~~~~~~ NAVIGATION BUTTONS ~~~~~~~~~ */
+.pdf-viewer-container access-button.navigation {
+    --width: var(--actual-x-padding, var(--side-padding, 40px));
+
+    position: absolute;
+    top: var(--actual-y-padding, var(--side-padding, 40px));
+    bottom: var(--actual-y-padding, var(--side-padding, 40px));
+    width: var(--width);
+
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-viewer-container access-button.navigation.next {
+    right: 0;
+}
+.pdf-viewer-container access-button.navigation.prev {
+    left: 0;
+}
+.pdf-viewer-container[no-prev] access-button.navigation.prev,
+.pdf-viewer-container[no-next] access-button.navigation.next {
+    opacity: .5;
+    pointer-events: none;
+}
+.pdf-viewer-container access-button.navigation i-bw{
+    font-size: min(calc(var(--width) / 2), 3em);
+    color: #000c;
+}
+
+/* ~~~~~~~~~ TOP & BOTTOM REGIONS ~~~~~~~~~ */
+.pdf-viewer-container .bottom-region,
+.pdf-viewer-container .top-region {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--actual-y-padding, var(--side-padding, 40px));
+   
+}
+.pdf-viewer-container .bottom-region {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    bottom: 0;
+}
+.pdf-viewer-container .top-region {
+    top: 0;
+    left: calc(var(--actual-x-padding, var(--side-padding, 40px)));
+    right: calc(var(--actual-x-padding, var(--side-padding, 40px)));
+    display: flex;
+    justify-content: space-between;
+}
+
+
+/* ~~~~~~~~~ TOP REGION ACCESS BUTTONS ~~~~~~~~~ */
+.pdf-viewer-container .top-region access-button {
+    padding: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+.pdf-viewer-container .top-region access-button i-bw {
+    font-size: min(calc(var(--actual-y-padding, var(--side-padding, 40px)) / 2), 5em);
+    color: #fcaf37;
+}
+
+
+/* ~~~~~~~~~ GUIDE & HIGHLIGHTING ~~~~~~~~~ */
+.guide {
+    pointer-events: none;
+}
+.word-underline {
+    background-color: var(--underline-color);
+    opacity: 0;
+    transition: 0.2s ease;
+}
+.word-underline[active] {
+    opacity: .7;
+}
+
+.hover-box {
+    cursor: pointer;
+}
+.word-highlight {
+    background-color: var(--highlight-color);
+    opacity: 0;
+    transition: 0.2s ease;
+}
+*[ready] .word-highlight[select] {
+    opacity: .4;
+}
+*[ready] .word-underline[select] {
+    opacity: .7;
+}
+
+
+.text-mask-overlay {
+    background: #ffffffa6;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.pdf-viewer-container[hide-images] .text-mask-overlay[ready] {
+    opacity: 1;
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~ SEARCH WINDOW ~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+search-window {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    transition: opacity 0.3s ease;
+    padding-left: calc(var(--left-keepout-width, 0) + var(--min-padding, 0));
+}
+
+.main-area {
+    display: grid;
+    column-gap: 2em;
+    grid-template-columns: repeat(auto-fill, minmax(12em, 1fr));
+    overflow-y: scroll;
+}
+.top-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2em;
+    padding: 1em;
+}
+.top-bar .search-area {
+    position: relative;
+    font-size: 1.2em;
+}
+.top-bar .search-area i-bw {
+    font-size: 0.8em;
+    position: absolute;
+    left: 1.4em;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--input-border-color);
+}
+.top-bar select {
+    border: var(--input-border);
+    border-radius: 0.5em;
+    outline: none;
+    font: inherit;
+    padding: 0.8em 1em;
+    box-sizing: border-box;
+}
+.top-bar input {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.5em;
+    border: var(--input-border);
+    outline: none;
+    font: inherit;
+    padding: 0.8em 1em 0.8em  3em;
+    box-sizing: border-box;
+}
+
+
+access-button.book-icon {
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+    border-radius: 0.5em;
+    gap: 0.5em
+}
+access-button.book-icon:hover {
+    background-color: rgba(0, 0, 0, 0.156);
+}
+access-button.book-icon .info {
+    display: flex;
+    flex-direction: column;
+}
+access-button.book-icon bg-img {
+    aspect-ratio: 210 / 297;
+}
+access-button.book-icon .unit,
+access-button.book-icon .category {
+    font-weight: bold;
+}

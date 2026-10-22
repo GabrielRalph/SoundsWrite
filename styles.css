@@ -7,6 +7,7 @@
     --i-lock: url('data:image/svg+xml,<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M182.42,119.87v-53.268c0-30.007-24.413-54.42-54.42-54.42s-54.42,24.413-54.42,54.42v53.268c-5.009.367-10.019.785-15.012,1.269v118.408c46.288,5.694,92.575,5.694,138.863,0v-118.408c-5.009-.484-10.019-.885-15.012-1.269h0ZM96.958,118.501v-51.898c0-17.116,13.926-31.042,31.042-31.042s31.042,13.926,31.042,31.042v51.898c-20.689-.885-41.395-.885-62.084,0Z"/></svg>');
     --i-no-board: url('data:image/svg+xml,<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="4.394" y="14.878" width="41.937" height="31.452" rx="8.387" ry="8.387"/><rect x="53.669" y="14.878" width="41.937" height="31.452" rx="8.387" ry="8.387" style="opacity: .5;"/><rect x="4.394" y="53.669" width="41.937" height="31.452" rx="8.387" ry="8.387" style="opacity: .5;"/><rect x="53.669" y="53.669" width="41.937" height="31.452" rx="8.387" ry="8.387" style="opacity: .5;"/><line x1="88.96" y1="6.691" x2="13.29" y2="93.354" style="fill: none; stroke: %23000; stroke-linecap: round; stroke-miterlimit: 10; stroke-width: 9px;"/></svg>');
     --i-rightArrow: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="13.892mm" height="13.892mm" viewBox="0 0 39.379 39.379"><polyline points="11.837 3.895 27.541 19.689 11.837 35.483" fill="none" stroke="%23231f20" stroke-linecap="round" stroke-linejoin="round" stroke-width="6.596"/></svg>');
+    --i-search: url('data:image/svg+xml,<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 99.99 99.99"><path d="M18.178,33.73c-.572,2.196-.809,4.527-.654,6.936.687,10.658,9.269,19.385,19.915,20.235.47.037.937.06,1.401.068,3.363.058,4.493-4.572,1.47-6.048-8.159-3.984-13.672-10.773-15.932-21.01-.718-3.251-5.362-3.403-6.201-.181Z"/><path d="M96.865,90.424l-28.335-28.225c4.977-6.335,7.957-14.31,7.957-22.973C76.487,18.678,59.771,1.962,39.225,1.962S1.962,18.678,1.962,39.225s16.716,37.262,37.263,37.262c8.669,0,16.649-2.984,22.986-7.967l28.345,28.236c.872.869,2.014,1.303,3.154,1.303,1.146,0,2.293-.438,3.166-1.314,1.742-1.749,1.736-4.579-.012-6.32ZM10.901,39.225c0-15.618,12.706-28.324,28.324-28.324s28.325,12.706,28.325,28.324-12.707,28.325-28.325,28.325-28.324-12.707-28.324-28.325Z"/></svg>');
     --i-leftArrow: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="13.892mm" height="13.892mm" viewBox="0 0 39.379 39.379"><polyline points="27.541 3.895 11.837 19.689 27.541 35.483" fill="none" stroke="%23231f20" stroke-linecap="round" stroke-linejoin="round" stroke-width="6.596"/></svg>');
 }
 [i="backspace"], [backspace] { --i-bg: var(--i-backspace); }
@@ -17,7 +18,7 @@
 [i="lock"], [lock] { --i-bg: var(--i-lock); }
 [i="no-board"], [no-board] { --i-bg: var(--i-no-board); }
 [i="rightArrow"], [rightArrow] { --i-bg: var(--i-rightArrow); }
-.i-bw {
+.i-bw, i-bw {
     background-color: currentColor;
     mask-image: var(--i-bg);
     display: inline-block;
@@ -27,7 +28,7 @@
     mask-size: contain;
     mask-repeat: no-repeat;
 }
-.i-c {
+.i-c, i-c {
     background-image: var(--i-bg);
     display: inline-block;
     width: 1.2em;
@@ -48,20 +49,21 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
+    
 }
 .view-window {
     position: relative;
     width: 85vw;
     height: 100vh;
-
 }
+
 pdf-viewer-3d {
     display: block;
     width: 100%;
     height: 100%;
     filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.135));
+    position: relative;
 }
-
 canvas {
     position: absolute;
     top: 0;
@@ -70,20 +72,50 @@ canvas {
     height: 100%;
 }
 
+
+
 .overlay-box {
     position: absolute;
     z-index: 10;
 }
-
-.overlay-box > div {
-    transition: opacity 0.1s ease;
-    opacity: 0;
-
-    border-bottom: 2px solid darkred;
+.overlay-box .line-box {
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.15s ease;
 }
-.overlay-box > div:hover {
+.overlay-box .line-box:hover {
+    border-color: rgba(139, 0, 0, 0.192);
+}
+
+.word-box {
+    position: relative;
+}
+.word-box::before {
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    height: 150%;
+    top: 40%;
+    left: 0;
+    z-index: 1000;
+}
+
+.word-box:hover::before {
     opacity: 1;
 }
+.word-box::after {
+    content: ' ';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    border-bottom: rgba(139, 0, 0, 0.864) 2px solid;
+    box-sizing: content-box;
+}
+.word-box:hover::after {
+    opacity: 1;
+}
+
 
 .nav-button {
     position: absolute;

@@ -2,170 +2,160 @@
     "categories": {
         "EC": [
             {
-                "file": "ExtendedCode/EC1.pdf",
+                "file": "ExtendedCode/U1.pdf",
                 "title": "Kates Book",
                 "unit": "1",
                 "detail": "/ae/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U1.jpg"
             },
             {
-                "file": "ExtendedCode/EC2.pdf",
+                "file": "ExtendedCode/U2.pdf",
                 "title": "Lee Reads",
                 "unit": "2",
                 "detail": "/ee/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U2.jpg"
             },
             {
-                "file": "ExtendedCode/EC4.pdf",
+                "file": "ExtendedCode/U4.pdf",
                 "title": "Flo Rows",
                 "unit": "4",
                 "detail": "/oe/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U4.jpg"
             },
             {
-                "file": "ExtendedCode/EC6.pdf",
+                "file": "ExtendedCode/U6.pdf",
                 "title": "Earl's Words",
                 "unit": "6",
                 "detail": "/er/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U6.jpg"
             },
             {
-                "file": "ExtendedCode/EC7.pdf",
+                "file": "ExtendedCode/U7.pdf",
                 "title": "Ali's Chess Set",
                 "unit": "7",
                 "detail": "/e/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U7.jpg"
             },
             {
-                "file": "ExtendedCode/EC8.pdf",
+                "file": "ExtendedCode/U8.pdf",
                 "title": "Tao's Trek",
                 "unit": "8",
                 "detail": "/ow/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U8.jpg"
             },
             {
-                "file": "ExtendedCode/EC10.pdf",
+                "file": "ExtendedCode/U10.pdf",
                 "title": "Charity's Flute",
                 "unit": "10",
                 "detail": "m/oo/n",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U10.jpg"
             },
             {
-                "file": "ExtendedCode/EC11.pdf",
+                "file": "ExtendedCode/U11.pdf",
                 "title": "Tess's Bike Race",
                 "unit": "11",
                 "detail": "/ie/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U11.jpg"
             },
             {
-                "file": "ExtendedCode/EC12.pdf",
+                "file": "ExtendedCode/U12.pdf",
                 "title": "Jack Camps in the Woods",
                 "unit": "12",
                 "detail": "b/oo/k",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U12.jpg"
             },
             {
-                "file": "ExtendedCode/EC14.pdf",
+                "file": "ExtendedCode/U14.pdf",
                 "title": "Doug's Cousin",
                 "unit": "14",
                 "detail": "/u/",
-                "category": "Extended Code"
+                "category": "Extended Code",
+                "cover": "ExtendedCode/U14.jpg"
             }
         ],
         "IC": [
             {
                 "unit": "4",
                 "file": "InitialCode/U4.pdf",
-                "name": "Viv's pig and hen e-book.pdf",
+                "title": "Viv's pig and hen",
                 "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "11",
-                "file": "InitialCode/U11.pdf",
-                "name": "Meg's pet moth e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
+                "category": "Initial Code",
+                "cover": "InitialCode/U4.jpg"
             },
             {
                 "unit": "5",
                 "file": "InitialCode/U5.pdf",
-                "name": "Ken's pet bug e-book.pdf",
+                "title": "Ken's pet bug",
                 "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "7",
-                "file": "InitialCode/U7.pdf",
-                "name": "Jess's pet fox e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "11",
-                "file": "InitialCode/U11.pdf",
-                "name": "Sal's pet'squid e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "11",
-                "file": "InitialCode/U11.pdf",
-                "name": "Kim's pet chimp e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "10",
-                "file": "InitialCode/U10.pdf",
-                "name": "Sam's pet'skunk e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "11",
-                "file": "InitialCode/U11.pdf",
-                "name": "Josh's pet fish e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
-            },
-            {
-                "unit": "11",
-                "file": "InitialCode/U11.pdf",
-                "name": "Tim's pet chick e-book.pdf",
-                "detail": null,
-                "category": "Initial Code"
+                "category": "Initial Code",
+                "cover": "InitialCode/U5.jpg"
             },
             {
                 "unit": "6",
                 "file": "InitialCode/U6.pdf",
-                "name": "Jed's pet rat e-book.pdf",
+                "title": "Jed's pet rat",
                 "detail": null,
-                "category": "Initial Code"
+                "category": "Initial Code",
+                "cover": "InitialCode/U6.jpg"
             },
             {
-                "unit": "9",
-                "file": "InitialCode/U9.pdf",
-                "name": "Fran's pet crab e-book.pdf",
+                "unit": "7",
+                "file": "InitialCode/U7.pdf",
+                "title": "Jess's pet fox",
                 "detail": null,
-                "category": "Initial Code"
+                "category": "Initial Code",
+                "cover": "InitialCode/U7.jpg"
             },
             {
                 "unit": "8",
                 "file": "InitialCode/U8.pdf",
-                "name": "Alf's pet bat e-book.pdf",
+                "title": "Alf's pet bat",
                 "detail": null,
-                "category": "Initial Code"
+                "category": "Initial Code",
+                "cover": "InitialCode/U8.jpg"
+            },
+            {
+                "unit": "9",
+                "file": "InitialCode/U9.pdf",
+                "title": "Fran's pet crab",
+                "detail": null,
+                "category": "Initial Code",
+                "cover": "InitialCode/U9.jpg"
+            },
+            {
+                "unit": "10",
+                "file": "InitialCode/U10.pdf",
+                "title": "Sam's pet'skunk",
+                "detail": null,
+                "category": "Initial Code",
+                "cover": "InitialCode/U10.jpg"
+            },
+            {
+                "unit": "11",
+                "file": "InitialCode/U11.pdf",
+                "title": "Tim's pet chick",
+                "detail": null,
+                "category": "Initial Code",
+                "cover": "InitialCode/U11.jpg"
             }
-
         ],
         "ICEA": [
             {
                 "unit": "1",
-                "file": "ICEA/U1.pdf",
-                "name": "Example ICEA e-book.pdf",
+                "file": "InitialCodeEgyptianAdventures/U1.pdf",
+                "title": "Mim's Mat",
                 "detail": null,
-                "category": "Initial Code Egyptian Adventures" 
+                "category": "Initial Code Egyptian Adventures",
+                "cover": "InitialCodeEgyptianAdventures/U1.jpg"
             }
         ]
     }

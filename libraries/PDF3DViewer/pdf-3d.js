@@ -1,7 +1,52 @@
-import { BackSide, Box3, CanvasTexture, Color, DirectionalLight, DoubleSide, FrontSide, Group, HemisphereLight, LinearFilter, LinearMipmapLinearFilter, MathUtils, Mesh, MeshStandardMaterial, PCFShadowMap, PCFSoftShadowMap, PerspectiveCamera, PlaneGeometry, RepeatWrapping, Scene, SRGBColorSpace, Texture, Vector3, WebGLRenderer } from "three";
+import { 
+    BackSide, FrontSide,
+    MathUtils, Box3, Vector3, 
+    Texture,  CanvasTexture, MeshStandardMaterial, SRGBColorSpace, RepeatWrapping, 
+    DirectionalLight, HemisphereLight, 
+    Group, Mesh, PlaneGeometry,
+    PCFShadowMap, 
+    PerspectiveCamera, 
+    Scene, WebGLRenderer 
+} from "three";
 import * as pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = import.meta.resolve('../node_modules/pdfjs-dist/build/pdf.worker.min.mjs');
+pdfjs.GlobalWorkerOptions.workerSrc = import.meta.resolve('./pdf.worker.min.mjs');
 import { Bezier } from "bezier-js";
+
+/**
+ * @param {import("pdfjs-dist").PDFPageProxy} page
+ * @return {Promise<import("pdfjs-dist/types/src/display/api").TextContent>}
+ */
+async function getTextContentCompat(page) {
+    const reader = page.streamTextContent().getReader();
+
+    const textContent = {
+        items: [],
+        styles: {},
+    };
+
+    try {
+        while (true) {
+            const result = await reader.read();
+
+            if (result.done) {
+                break;
+            }
+
+            const value = result.value;
+
+            if (value.lang && !textContent.lang) {
+                textContent.lang = value.lang;
+            }
+
+            Object.assign(textContent.styles, value.styles);
+            textContent.items.push(...value.items);
+        }
+    } finally {
+        reader.releaseLock();
+    }
+
+    return textContent;
+}
 
 function getEvenlySpacedPoints(cubic, segments, resolution = segments * 10) {
     if (!Number.isFinite(segments) || segments <= 0) {
@@ -68,13 +113,24 @@ class PageTexture extends CanvasTexture {
      * @param {HTMLCanvasElement} canvas
      * @param {PDFPageProxy} page
      * @param {import("pdfjs-dist").PageViewport} pageViewport
+     * @param {import("pdfjs-dist/types/src/display/api").TextContent} textContent
      */
-    constructor(canvas, page, pageViewport) {
+    constructor(canvas, page, pageViewport, textContent) {
         super(canvas);
         this.colorSpace = SRGBColorSpace;
         this.pageViewport = pageViewport;
         this.page = page;
         this.needsUpdate = true;
+        this._textContent = textContent;
+    }
+
+    /**
+     * returns a deep copy of the text content
+     * @param {import("pdfjs-dist/types/src/display/api").TextContent} content
+     */
+    get textContent() {
+        // return a deep copy of the text content
+        return JSON.parse(JSON.stringify(this._textContent));
     }
 
     get width() {
@@ -83,6 +139,25 @@ class PageTexture extends CanvasTexture {
 
     get height() {
         return this.pageViewport.height;
+    }
+
+    getTransformedTextContent(bbox) {
+        const VB = this.pageViewport.viewBox;
+        const scaleX = VB[2]/ bbox.width;
+        const scaleY = VB[3] / bbox.height;
+        const textContent = this.textContent;
+
+        // Adjust the text content items to 
+        // match the scaled page dimensions
+        textContent.items = textContent.items.map(i => {
+            i.width = i.width / scaleX;
+            i.height = i.height / scaleY;
+            i.transform = i.transform.map((v, idx) => idx % 2 === 0 ? v / scaleX : -v / scaleY);
+            i.transform[5] = bbox.height + i.transform[5];
+            return i;
+        })
+        
+        return textContent;
     }
 
     /**
@@ -130,7 +205,9 @@ class PageTexture extends CanvasTexture {
             viewport
         }).promise;
 
-        return new PageTexture(pdfCanvas, page, viewport);
+        const textContent = await getTextContentCompat(page);
+
+        return new PageTexture(pdfCanvas, page, viewport, textContent);
     }
 }
 
@@ -173,10 +250,6 @@ class Page3D extends Mesh {
         super(geometry, [material, back]);
         this.castShadow = true;
         this.receiveShadow = true;
-
-        // this.material.depthTest = false;
-        // this.material.depthWrite = false;
-        // this.renderOrder = 10;
 
         this.width = width;
         this.height = height;
@@ -485,37 +558,79 @@ class Book3D extends Group {
         
 }
 
-/**
- * @param {import("pdfjs-dist/types/src/display/api").TextContent} content
- */
-function getItemGroups(content) {
-    const {items} = content;
-    const itemsByHeight = {};
-    for (const item of items.filter(i => i.str.trim().length > 0)) {
-        const height = Math.round(item.height);
-            if (height > 0) {
-                if (!itemsByHeight[height]) {
-                itemsByHeight[height] = [];
-            }
-            itemsByHeight[height].push(item);
+
+class PromiseRacer {
+    #processing = false;
+    #head = null;
+    #currentValue;
+    #lastValue;
+
+    /** @type {Promise<boolean>|null} */
+    #processingPromise = null;
+
+    get nextValue() { return this.#head ? this.#head.value : undefined; }
+    get value() { return this.#head ? this.#head.value : this.#currentValue; }
+    get currentValue() { return this.#currentValue; }
+    set currentValue(value) { this.#currentValue = value; }
+    get lastValue() { return this.#lastValue; }
+    get processing() { return this.#processing; }
+
+    reset() {
+        if (this.#head) this.#head.resolver(false);
+        this.#head = null;
+        this.#currentValue = undefined;
+        this.#lastValue = undefined;
+    }
+
+    async add(promiseFunction, value) {
+        let promise = Promise.resolve();
+
+        if (promiseFunction instanceof Function) {
+
+            // Resolve false to indicate the 
+            // previous head was replaced
+            if (this.#head) this.#head.resolver(false);
+
+            // Create a new promise for the new head
+            promise = new Promise((r) => {
+                this.#head = {
+                    function: promiseFunction,
+                    value: value,
+                    resolver: r
+                };
+            });
+
+            // Start processing the head
+            this.#process();
+        }
+
+        return promise;
+    }
+
+    async wait() {
+        if (this.#processingPromise) {
+            await this.#processingPromise;
         }
     }
 
-
-    for (const height in itemsByHeight) {
-        const hItems = itemsByHeight[height];
-        const itemByLine = {};
-        for (const item of hItems) {
-            const y = Math.round(item.transform[5]);
-            if (!itemByLine[y]) {
-                itemByLine[y] = [];
-            }
-            itemByLine[y].push(item);
+    async #process() {
+        if (!this.#processing) {
+            this.#processing = true;
+            this.#processingPromise = (async () => {
+                while (this.#head) {
+                    const head = this.#head;
+                    this.#head = null;
+                    this.#lastValue = this.#currentValue;
+                    this.#currentValue = head.value;
+                    await head.function();
+                    head.resolver(true);
+                }
+                this.#processing = false;
+                this.#processingPromise = null;
+            })();
+            await this.#processingPromise;
         }
     }
-
-    
-    return content.items;
 }
 
 class PDFViewer3D extends HTMLElement {
@@ -524,14 +639,17 @@ class PDFViewer3D extends HTMLElement {
      */
     #pdf = null;
     #pageSets = [];
-    #i = 0;
 
-    #transitionQueue = [];
-    #queueProcessing = false;
+    #pagePR = new PromiseRacer();
+    #loaderPR = new PromiseRacer();
+
+    #renderQueued = false;
+    #addOverlay = false;
     
     sidePadding = 50;
-
     transitionDuration = 750;
+
+    #built = false;
 
     constructor() {
         super();
@@ -546,7 +664,8 @@ class PDFViewer3D extends HTMLElement {
         });
         renderer.setClearColor(0x000000, 0); 
 
-        const pixelRatio = Math.min(window.devicePixelRatio, 2)
+        
+        const pixelRatio = 4
         renderer.setPixelRatio(pixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = PCFShadowMap;
@@ -575,21 +694,14 @@ class PDFViewer3D extends HTMLElement {
         keyLight.shadow.normalBias = 0.005;
         scene.add(keyLight);
 
-        this.appendChild(canvas);
-        this.pageOverlays = [0, 1].map(i => {
-            let page1Div = document.createElement("div");
-            this.appendChild(page1Div);
-            page1Div.classList.add("overlay-box");
-            return page1Div;
-        })
-
+        
 
         // Store references to renderer, scene, and camera for later use
         this.keyLight = keyLight;
         this.renderer = renderer;
         this.scene = scene;
         this.camera = camera;
-
+        this.canvas = canvas;
 
         this.resizeObserver = new ResizeObserver(() => this.onresize());
         this.resizeObserver.observe(this);
@@ -601,20 +713,26 @@ class PDFViewer3D extends HTMLElement {
                 this.move(-1)
             }
         });
+
+        window.mypdf = this;
     }
 
-    async #updateTransitionQueue() {
-        if (this.#queueProcessing) return;
-        this.#queueProcessing = true;
-
-        while (this.#transitionQueue.length > 0) {
-            let transition = this.#transitionQueue.pop()
-            this.#transitionQueue = [];
-            await transition();
-        }
-
-        this.#queueProcessing = false;
+    build() {
+        if (this.#built) return;
+        this.#built = true;
+        this.appendChild(this.canvas);
+        this.pageOverlays = [0, 1].map(i => {
+            let page1Div = document.createElement("div");
+            this.appendChild(page1Div);
+            page1Div.classList.add("overlay-box");
+            return page1Div;
+        })
     }
+
+    connectedCallback() {
+        this.build();
+    }
+
 
     #clearOverlayContents() {
         this.pageOverlays.forEach(overlay => {
@@ -622,61 +740,59 @@ class PDFViewer3D extends HTMLElement {
         });
     }
 
-    async #addOverlayContents() {
-        if (!this.book) return;
+    /**
+     * @param {Object} bbox - The bounding box of the page.
+     * @param {Page3D} page3d - The 3D page object.
+     * @param {HTMLElement} overlay - The overlay element to render the text layer into.
+     * @param {number} pageNum - The page number.
+     * @return {[number, number]} The width and height of the rendered page overlay.
+     */
+    #renderPageOverlay(bbox, page3d, overlay, pageNum) {
+        const pageTexture = page3d.visibleTexture;
+        const pageBBox = page3d.getBBox(this.camera, bbox);
+        overlay.innerHTML = '';
+        overlay.style.position = 'absolute';
+        overlay.style.left = `${pageBBox.left - bbox.left}px`;
+        overlay.style.top = `${pageBBox.top - bbox.top}px`;
+        overlay.style.width = `${pageBBox.width}px`;
+        overlay.style.height = `${pageBBox.height}px`;
+        if (pageTexture) {
+            try {
+                const textContent = pageTexture.getTransformedTextContent(pageBBox);
+                this.renderTextLayer({
+                    bbox: pageBBox,
+                    textContent,
+                    overlay: overlay,
+                    pageNum: pageNum,
+                });
+            } catch (error) {
+                console.error("Error rendering overlay:", error);
+            }
+        }
+        return [pageBBox.width, pageBBox.height]
+    }
 
+    #addOverlayContents() {
+        if (!(this.#pdf && this.book)) return;
         let bbox = this.getBoundingClientRect();
-        await Promise.all(
-            [this.book.leftPage3d, this.book.turningPage3d].map(async (page3d, i) => {
-                const pageTexture = page3d.visibleTexture;
-                const pageBBox = page3d.getBBox(this.camera, bbox);
-                const overlay = this.pageOverlays[i];
-                overlay.innerHTML = '';
-                overlay.style.left = `${pageBBox.left - bbox.left}px`;
-                overlay.style.top = `${pageBBox.top - bbox.top}px`;
-                overlay.style.width = `${pageBBox.width}px`;
-                overlay.style.height = `${pageBBox.height}px`;
+        let [i, j] = this.currentPages;
+        let [w1, h1] = this.#renderPageOverlay(bbox, this.book.leftPage3d, this.pageOverlays[0], i);
+        let [w2, h2] = this.#renderPageOverlay(bbox, this.book.turningPage3d, this.pageOverlays[1], j);
+          
+        let totalWidth = w1 + w2;
+        let maxHeight = Math.max(h1, h2);
 
-                if (pageTexture) {
-                    const page = pageTexture.page;
-                    const content = await page.getTextContent();
-                    const [x0, y0, vW, vH] = pageTexture.pageViewport.viewBox;
-                    for (const item of content.items) {
-                        if (!item.str.trim()) continue;
-                        const style = content.styles[item.fontName];
+        maxHeight = Number.isNaN(maxHeight) ? bbox.height : maxHeight;
+        totalWidth = Number.isNaN(totalWidth) ? bbox.width : totalWidth;
 
-                        const relW = item.width / vW;
-                        const relH = item.height / vH;
-                        const xI = (item.transform[4] - x0) / vW ;
-                        const yI = 1 - (item.transform[5] - y0) / vH - relH * style.ascent * 0.95;
-
-                        const padding = 0.0
-                        const div = document.createElement("div");
-                        div.style.position = "absolute";
-                        div.style.left = `${(xI - padding) * 100}%`;
-                        div.style.top = `${(yI - padding) * 100}%`;
-                        div.style.width = `${(relW + 2 * padding) * 100}%`;
-                        div.style.height = `${(relH + 2 * padding) * 100}%`;
-                        overlay.appendChild(div);
-                    }
-                }
-            })
-        );
+        this.actualPadding = {
+            top: (bbox.height - maxHeight) / 2,
+            left: (bbox.width - totalWidth) / 2,
+            bottom: (bbox.height - maxHeight) / 2,
+            right: (bbox.width - totalWidth) / 2
+        }
+        this.dispatchEvent(new CustomEvent('padding-change', { detail: { padding: this.actualPadding } }));
     }
-   
-    #render() {
-        this.renderer.render(this.scene, this.camera);
-    }
-
-
-    get numPageSets() {
-        return this.#pageSets.length;
-    }
-
-    get pageSetIndex() {
-        return this.#i;
-    }
-
 
     async #getPages(pages) {
         return await Promise.all(
@@ -688,56 +804,163 @@ class PDFViewer3D extends HTMLElement {
             )
         );
     }
+   
+    #render(addOverlay = false) {
+        if (this.#renderQueued) return;
+        this.#renderQueued = true;
+        if (addOverlay) this.#addOverlay = true;
+
+        window.requestAnimationFrame(() => {
+            this.renderer.render(this.scene, this.camera);
+            if (this.#addOverlay) this.#addOverlayContents();
+            this.#renderQueued = false;
+            this.#addOverlay = false;
+        });
+    }
+
+    get numPages() {
+        return this.#pdf?.numPages || 0;
+    }
+
+    get numPageSets() {
+        return this.#pageSets.length;
+    }
+
+    get pageSetIndex() {
+        return this.#pagePR.value ?? 0;
+    }
+
+    get currentPages() {
+        return this.#pageSets[this.pageSetIndex]
+    }
+
+    get nextPageSet() {
+        return this.#pagePR.nextValue
+    }
+
+    get currentPDFURL() {
+        return this.#loaderPR.value ?? null;
+    }
+
+
+
+    /**
+     * Renders the text layer for a given overlay.
+     * @param {Object} params - The parameters for rendering the text layer.
+     * @param {{x: number, y: number, width: number, height: number}} params.bbox - The bounding box of the page.
+     * @param {import("pdfjs-dist/types/src/display/api").TextContent} params.textContent - The text content items to render.
+     * @param {HTMLElement} params.overlay - The overlay element to render the text layer into.
+     * @param {number} params.pageNum - The page number associated with the overlay.
+     * @returns {void} This function does not return a value.
+     * 
+     * @override
+     */
+    renderTextLayer({ bbox, textContent, overlay }) {
+    
+    }
 
     async load(url) {
-        this.#pdf = await pdfjs.getDocument({url}).promise;
+        if (url === this.#loaderPR.value) return;
+        return await this.#loaderPR.add(
+            async () => {
+                try {
+                    this.#pdf = await pdfjs.getDocument({url}).promise;
+                    let pages = this.#pdf.numPages; 
+                    let pageSets = [
+                        [null, 1], 
+                        ...new Array(Math.floor((pages-1)/2))
+                            .fill(null)
+                            .map((_, i) => [(i+1)*2, (i+1)*2 + 1]),
+                        ...(pages % 2 === 0 ? [[pages, null]] : [])
+                    ];
+                    let [firstPageTexture] = await this.#getPages([1])
+                    const {width, height} = firstPageTexture;
 
-        let pages = this.#pdf.numPages; 
-        let pageSets = [
-            [null, 1], 
-            ...new Array(Math.floor((pages-1)/2))
-                .fill(null)
-                .map((_, i) => [(i+1)*2, (i+1)*2 + 1]),
-            ...(pages % 2 === 0 ? [[pages, null]] : [])
-        ];
-        let [firstPageTexture] = await this.#getPages([1])
-        const {width, height} = firstPageTexture;
+                    // Create a 3D book with the dimensions of the first page
+                    if (this.book) this.scene.remove(this.book);
+                    this.book = new Book3D(width, height);
+                    this.scene.add(this.book);
+                    this.#pageSets = pageSets;
 
-        // Create a 3D book with the dimensions of the first page
-        if (this.book) this.scene.remove(this.book);
-        this.book = new Book3D(width, height);
-        this.scene.add(this.book);
-        this.#pageSets = pageSets;
 
-        // Turn the first page of the book with the initial texture
-        this.#i = 0
-        await this.book.turnPage(null, firstPageTexture, 1, -0)
+                    // Turn the first page of the book with the initial texture
+                    let index = this.pageSetIndex
+                    index = index > this.numPageSets ? 0 : index;
 
-        // Trigger the initial render after turning the first page
-        this.onresize();
-        await this.#addOverlayContents();
-        this.dispatchEvent(new CustomEvent('change', { detail: { index: this.#i } }));
-    }
-
-    async move(delta, delay = this.transitionDuration, triggerEvent = true) {
-        let nextI = this.#i + delta;
-        this.setPageSet(nextI, delay, triggerEvent);
-    }
-
-    async setPageSet(index, delay = this.transitionDuration, triggerEvent = false, direction = null) {
-        if (index >= 0 && index < this.numPageSets) {
-            this.#transitionQueue.push(async () => {
-                direction = direction ?? (index > this.#i ? 1 : -1);
-                this.#i = index;
-                if (triggerEvent) {
-                    this.dispatchEvent(new CustomEvent('change', { detail: { index } }));
+                    // Set the initial page after the loader promise has resolved
+                    requestAnimationFrame(() => {
+                        this.setPageSet(index, {force: true, triggerEvent: true, duration: -1});
+                        this.onresize();
+                    })
+                } catch (error) {
+                    console.error("Failed to load PDF document:", error);
+                    this.#pdf = null;
+                    this.#pageSets = [];
+                    this.#pagePR.reset();
+                    if (this.book) this.scene.remove(this.book);
+                    this.#render();
+                    this.dispatchEvent(new Event("change"));
                 }
-                this.#clearOverlayContents();
-                let pages = await this.#getPages(this.#pageSets[index])
-                await this.book.turnPage(...pages, direction, delay, this.#render.bind(this));
-                await this.#addOverlayContents();
-            });
-            this.#updateTransitionQueue();
+            }, url
+        );
+    }
+
+    /**
+     * @typedef {Object} PageSetMoveOptions
+     * @property {boolean} [triggerEvent=true] - Whether to trigger the 'change' event.
+     * @property {number} [duration] - The duration of the page transition in milliseconds.
+     * @property {number} [direction] - The direction of the page turn. 
+     *                                   1: forward
+     *                                  -1: backward
+     *                                  null: automatic
+     * @property {boolean} [force=false] - Whether to force the page turn even if the
+     *                                     target page set is the current one.
+     */
+
+    /**
+     * Moves the current page set by a specified delta.
+     * @param {number} delta - The number of page sets to move. Positive values
+     * move forward, negative values move backward.
+     * @param {PageSetMoveOptions} [options] - Options for the page transition.
+     * @returns {Promise<void>} A promise that resolves when the page transition is complete.
+     */
+    async move(delta, options = {triggerEvent: true}) {
+        let nextI = this.pageSetIndex + delta;
+        this.setPageSet(nextI, options);
+    }
+
+    /**
+     * Sets the current page set to the specified index.
+     * @param {number} i - The index of the page set to display.
+     * @param {PageSetMoveOptions} [options] - Options for the page transition.
+     * @returns {Promise<void>} A promise that resolves when the page transition is complete.
+     */
+    async setPageSet(i, options = {}) {
+        let {duration, triggerEvent, direction, force} = (typeof options === 'object' ? options : null) || {};
+        let curI = this.pageSetIndex;
+        duration = duration ?? this.transitionDuration;
+        triggerEvent = triggerEvent ?? false;
+        direction = direction ?? (i > curI ? 1 : -1);
+
+        // If the loader is currently processing, (i.e. a new pdf 
+        // is being loaded) update the next page set index and wait 
+        // for the loader to finish.
+        if (this.#loaderPR.processing) {
+            this.#pagePR.currentValue = i;
+            await this.#loaderPR.wait();
+
+        // Otherwise if the a PDF is loaded, the index is within range
+        // and is different from the current index or if the force option is set.
+        } else if (this.#pdf && i >= 0 && i < this.numPageSets && (curI !== i || force))  {
+            await this.#pagePR.add(
+                async () => {
+                    if (triggerEvent) this.dispatchEvent(new CustomEvent('change'));
+                    this.#clearOverlayContents();
+                    let pages = await this.#getPages(this.#pageSets[i])
+                    await this.book.turnPage(...pages, direction, duration, this.#render.bind(this));
+                    this.#render(true);
+                }, i
+            )
         }
     }
 
@@ -799,8 +1022,7 @@ class PDFViewer3D extends HTMLElement {
             height
         );
 
-        this.#render();
-        this.#addOverlayContents()
+        this.#render(true);
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -817,11 +1039,11 @@ class PDFViewer3D extends HTMLElement {
     }
 
 
+
     static get observedAttributes() {
         return ["src", "transition-duration"];
     }
 }
 
-
-customElements.define("pdf-viewer-3d", PDFViewer3D);
+export {PDFViewer3D}
 
