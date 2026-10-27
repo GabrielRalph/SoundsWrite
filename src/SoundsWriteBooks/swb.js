@@ -422,7 +422,8 @@ class PDFViewer extends SvgPlus {
     updateState(trigger = true) {
         this.toggleAttribute("no-next", this.viewer3D.pageSetIndex >= this.viewer3D.numPageSets - 1);
         this.toggleAttribute("no-prev", this.viewer3D.pageSetIndex <= 0);
-        let pages = (this.viewer3D.currentPages || []).filter(i => i !== null);
+        let pages = (this.viewer3D.currentPages || [])
+            .filter(i => i !== null && i > 0 && i <= this.viewer3D.numPages);
         this.pageNumber.textContent = `${pages.length > 1 ? "Pages" : "Page"} ${pages.join(' & ')} of ${this.viewer3D.numPages}`
         if (trigger) this.dispatchEvent(new CustomEvent("change"));
     }
