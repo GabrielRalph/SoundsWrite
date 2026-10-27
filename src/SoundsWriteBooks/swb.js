@@ -317,6 +317,36 @@ class LineGuides extends SvgPlus {
 
 }
 
+class SelectedWordsOverlay extends SvgPlus {
+    constructor(selectedWords) {
+        super("div");
+        this.class = "final-highlighted-words";
+        const h = this.createChild("div", {class: "header"});
+        h.createChild("h1", {content: "Selected Words"});
+        const icon = h.createChild("access-button", {
+            class: "tactile",
+            events: {
+                "access-click": async () => {
+                    try {
+                        await navigator.clipboard.writeText(selectedWords.join("\n"));
+                        icon.style.color = "#4caf50";
+                        setTimeout(() => {
+                            icon.style.color = "";
+                        }, 2000);
+                    } catch (err) {
+                        console.error("Failed to copy text: ", err);
+                    }
+                }
+            }
+        }).createChild("i-bw", { "i": "copy" });
+        const g = this.createChild("div", {class: "grid"}); 
+        selectedWords.forEach(word => {
+            g.createChild("div", {class: "final-word", content: "- " + word});
+        });
+
+    }
+}
+
 class PDFViewer extends SvgPlus {
     /** @type {import("../../libraries/PDF3DViewer/pdf-3d.js").PDFViewer3D} */
     viewer3D;
@@ -344,7 +374,7 @@ class PDFViewer extends SvgPlus {
 
 
         this.createChild("access-button", {
-            class: "navigation next",
+            class: "navigation next tactile",
             events: {
                 // click: () => this.viewer3D.move(1),
                 "access-click": () => this.viewer3D.move(1)
@@ -352,7 +382,7 @@ class PDFViewer extends SvgPlus {
         }).createChild("i-bw", { "i": "rightArrow" });
 
         this.createChild("access-button", {
-            class: "navigation prev",
+            class: "navigation prev tactile",
             events: {
                 "access-click": () => this.viewer3D.move(-1)
             }
@@ -360,11 +390,12 @@ class PDFViewer extends SvgPlus {
 
         this.bottomRegion = this.createChild("div", {class: "bottom-region"});
         this.pageNumber = this.bottomRegion.createChild("div", {class: "page-number"});
+        this.bottomRegion.createChild("div", {class: "hint", content: "<b>Tip:</b> Click or tap any words you'd like to revisit.<br> You can review your highlighted words together at the end of the story."});
 
         this.topRegion = this.createChild("div", {class: "top-region"});
 
         this.topRegion.createChild("access-button", {
-            class: "home-button",
+            class: "home-button tactile",
             events: {
                 "access-click": () => this.dispatchEvent(new CustomEvent("home-click")),
                 // click: () => this.dispatchEvent(new CustomEvent("home-click")),
@@ -373,7 +404,7 @@ class PDFViewer extends SvgPlus {
 
 
         this.topRegion.createChild("access-button", {
-            class: "hide-images",
+            class: "hide-images tactile",
             events: {
                 "access-click": () => {
                     this.toggleAttribute("hide-images")
@@ -417,42 +448,50 @@ class PDFViewer extends SvgPlus {
     renderTextLayer({bbox, textContent, overlay, pageNum}) {
         if (!SvgPlus.is(overlay, SvgPlus)) overlay = new SvgPlus(overlay);
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        // Remove items that are empty or only contain numbers.
-        textContent.items = textContent.items.filter(
-            (i) => i.str && i.str.trim() && !i.str.match(/^\d+$/)
-        );
-
-        const maskWash = overlay.createChild("div", {
-            class: "text-mask-overlay",
-            styles: {
-                position: "absolute",
-                top: "0",
-                left: "0",
-                width: "100%",
-                height: "100%",
-                mask: textMask(textContent, bbox),
-                "mask-mode": "luminance",
-                "mask-type": "luminance"
+        if (textContent == null) {
+            const selectedWords = this.selectedWords;
+            if (pageNum == this.viewer3D.numPages + 1 && selectedWords.length > 0) {
+                overlay.createChild(SelectedWordsOverlay, {}, selectedWords);
             }
-        });
-        const lineGuides = overlay.createChild(LineGuides, {events: {
-            "change": () => {
-                this.selectedLineGuides[pageNum] = lineGuides.value;
+        } else {
+            console.log("Rendering text layer for page:", pageNum);
+    
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+    
+            // Remove items that are empty or only contain numbers.
+            textContent.items = textContent.items.filter(
+                (i) => i.str && i.str.trim() && !i.str.match(/^\d+$/)
+            );
+    
+            const maskWash = overlay.createChild("div", {
+                class: "text-mask-overlay",
+                styles: {
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                    width: "100%",
+                    height: "100%",
+                    mask: textMask(textContent, bbox),
+                    "mask-mode": "luminance",
+                    "mask-type": "luminance"
+                }
+            });
+            const lineGuides = overlay.createChild(LineGuides, {events: {
+                "change": () => {
+                    this.selectedLineGuides[pageNum] = lineGuides.value;
+                }
+            }}, textContent, bbox, ctx);
+            this.lineGuides[pageNum] = lineGuides;
+            if (this.selectedLineGuides[pageNum]) {
+                lineGuides.value = this.selectedLineGuides[pageNum];
             }
-        }}, textContent, bbox, ctx);
-        this.lineGuides[pageNum] = lineGuides;
-        if (this.selectedLineGuides[pageNum]) {
-            lineGuides.value = this.selectedLineGuides[pageNum];
+    
+            setTimeout(() => {
+                maskWash.toggleAttribute("ready", true);
+                lineGuides.toggleAttribute("ready", true);
+            }, 100);
         }
-
-        setTimeout(() => {
-            maskWash.toggleAttribute("ready", true);
-            lineGuides.toggleAttribute("ready", true);
-        }, 100);
-
     }
 
     get pageSetIndex() {
@@ -462,6 +501,12 @@ class PDFViewer extends SvgPlus {
     setPage(page, trigger = false) {
         this.viewer3D.setPageSet(page, {triggerEvent: trigger});
         if (!trigger) this.updateState(false);
+    }
+
+    get selectedWords() {
+        const allWords = Object.values(this.selectedLineGuides).flatMap(lines => lines.flatMap(line => line.map(([_, word]) => word)));
+        const wordSet = new Set(allWords.map(w => w.replace(/(^\W+)|(\W+$)/g, "")));
+        return Array.from(wordSet);
     }
 
     set state(state) {

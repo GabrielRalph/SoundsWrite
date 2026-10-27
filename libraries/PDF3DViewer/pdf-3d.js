@@ -756,18 +756,16 @@ class PDFViewer3D extends HTMLElement {
         overlay.style.top = `${pageBBox.top - bbox.top}px`;
         overlay.style.width = `${pageBBox.width}px`;
         overlay.style.height = `${pageBBox.height}px`;
-        if (pageTexture) {
-            try {
-                const textContent = pageTexture.getTransformedTextContent(pageBBox);
-                this.renderTextLayer({
-                    bbox: pageBBox,
-                    textContent,
-                    overlay: overlay,
-                    pageNum: pageNum,
-                });
-            } catch (error) {
-                console.error("Error rendering overlay:", error);
-            }
+        const textContent = pageTexture ? pageTexture.getTransformedTextContent(pageBBox) : null;
+        try {
+            this.renderTextLayer({
+                bbox: pageBBox,
+                textContent,
+                overlay: overlay,
+                pageNum: pageNum,
+            });
+        } catch (error) {
+            console.error("Error rendering overlay:", error);
         }
         return [pageBBox.width, pageBBox.height]
     }
@@ -797,7 +795,7 @@ class PDFViewer3D extends HTMLElement {
     async #getPages(pages) {
         return await Promise.all(
             pages.map(pageNum => 
-                pageNum ? 
+                pageNum && pageNum > 0 && pageNum <= this.numPages ? 
                     PageTexture.make(this.#pdf, pageNum, 2) 
                     : 
                     Promise.resolve(null)
@@ -868,11 +866,11 @@ class PDFViewer3D extends HTMLElement {
                     this.#pdf = await pdfjs.getDocument({url}).promise;
                     let pages = this.#pdf.numPages; 
                     let pageSets = [
-                        [null, 1], 
+                        [0, 1], 
                         ...new Array(Math.floor((pages-1)/2))
                             .fill(null)
                             .map((_, i) => [(i+1)*2, (i+1)*2 + 1]),
-                        ...(pages % 2 === 0 ? [[pages, null]] : [])
+                        ...(pages % 2 === 0 ? [[pages, pages + 1]] : [])
                     ];
                     let [firstPageTexture] = await this.#getPages([1])
                     const {width, height} = firstPageTexture;

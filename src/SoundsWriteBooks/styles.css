@@ -45,10 +45,17 @@ root-element[mode="search"] .pdf-viewer-container {
     transition: opacity 0.3s ease;
 }
 
-
-
 access-button { 
     cursor: pointer; 
+}
+access-button.tactile {
+    transition: 0.1s ease-in-out transform;
+}
+access-button.tactile:hover {
+    transform: scale(1.05);
+}
+access-button.tactile:active {
+    transform: scale(0.95);
 }
 
 /* ~~~~~~~~~ NAVIGATION BUTTONS ~~~~~~~~~ */
@@ -95,7 +102,14 @@ access-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
     bottom: 0;
+    text-align: center;
+}
+.hint {
+    font-size: 0.9em;
+    color: #333;
+    margin-top: 0.5em;
 }
 .pdf-viewer-container .top-region {
     top: 0;
@@ -121,6 +135,37 @@ access-button {
 
 
 /* ~~~~~~~~~ GUIDE & HIGHLIGHTING ~~~~~~~~~ */
+
+.final-highlighted-words {
+    padding: 1em;
+    box-sizing: border-box;
+    height: 100%;
+    background: #ffffff;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 0.3em;
+
+}
+.final-highlighted-words i-bw {
+    font-size: 1.5em;
+}
+.final-highlighted-words .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.final-highlighted-words .header h1 {
+    margin: 0;
+}
+.final-highlighted-words .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(7em, 1fr));
+    justify-items: start;
+    align-content: start;
+    overflow-y: scroll;
+}
+
+
 .guide {
     pointer-events: none;
 }
