@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Builder</title>
+    <link rel="icon" href="./Assets/logo-icon.png" type="image/png">
+    <style>
+        body:not([loaded]) sounds-write-books {
+            display: none;
+        }
+        word-builder {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+        }
+        .logo {
+            position: absolute;
+            bottom: 1em;
+            left: 1em;
+            width: calc(20vw - 2em);
+        }
+    </style>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+        body {
+            font-family: "Jost", sans-serif;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <img src="./Assets/logo-text.png" alt="Logo" class = "logo">
+    <word-builder></word-builder>
+</body>
+<script type="module">
+    import { WordBuilder } from "./src/WordBuilder/wb.js";
+    const wordBuilder = document.querySelector("word-builder");
+
+    if (window.SquidlyAPI) {
+        function updateButton() {
+            const state = wordBuilder.state;
+            if (state.groupIndex !== null) {
+                let iconKey = SquidlyAPI.setIcon(1, 0, {
+                    symbol: "search",               // Icon name or {url: "..."}
+                    displayValue: "Pick a Unit",    // Label text
+                    type: {
+                        theme: "lightGold",
+                        card: "folder"
+                    },              // Theme: "action" | "normal" ...
+                    disabled: false              // Optional
+                }, (event) => {
+                    wordBuilder.goHome();
+                });
+            }
+        }
+
+        wordBuilder.styles = {"left": "20vw"}
+        window.SquidlyAPI.firebaseOnValue("state", (state) => {
+            const json = JSON.parse(state)
+            wordBuilder.state = json;
+            console.log("WordBuilder Firebase State: group", json.groupIndex, "word", json.groupState?.index);
+            updateButton();
+        });
+
+        wordBuilder.addEventListener("change", () => {
+            console.log("WordBuilder DOM State: group", wordBuilder.state.groupIndex, "word", wordBuilder.state.groupState?.index);    
+            window.SquidlyAPI.firebaseSet("state", JSON.stringify(wordBuilder.state));
+            updateButton();
+        });
+    }
+</script>
+</html>

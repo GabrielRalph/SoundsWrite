@@ -1,0 +1,55 @@
+batch,lesson,category,item,word,prompt,empty_slots,fill_1,fill_2,fill_3,fill_4,image_file
+1,1.2,CVC,1,mat,m,2,a,t,,,mat.png
+1,1.2,CVC,2,sit,s,2,i,t,,,sit.png
+2,2.2,CVC,1,mop,m,2,o,p,,,mop.png
+2,2.2,CVC,2,pot,p,2,o,t,,,pot.png
+2,2.2,CVC,3,pin,p,2,i,n,,,pin.png
+2,2.2,CVC,4,map,m,2,a,p,,,map.png
+3,3.2,CVC,1,pig,p,2,i,g,,,pig.png
+3,3.2,CVC,2,bag,b,2,a,g,,,bag.png
+3,3.2,CVC,3,nib,n,2,i,b,,,nib.png
+3,3.2,CVC,4,hot,h,2,o,t,,,hot.png
+4,4.2,CVC,1,bed,b,2,e,d,,,bed.png
+4,4.2,CVC,2,fig,f,2,i,g,,,fig.png
+4,4.2,CVC,3,van,v,2,a,n,,,van.png
+4,4.2,CVC,4,net,n,2,e,t,,,net.png
+5,5.2,CVC,1,log,l,2,o,g,,,log.png
+5,5.2,CVC,2,jug,j,2,u,g,,,jug.png
+5,5.2,CVC,3,kit,k,2,i,t,,,kit.png
+5,5.2,CVC,4,cup,c,2,u,p,,,cup.png
+6,6.2,CVC,1,jet,j,2,e,t,,,jet.png
+6,6.2,CVC,2,wig,w,2,i,g,,,wig.png
+6,6.2,CVC,3,fez,f,2,e,z,,,fez.png
+6,6.2,CVC,4,web,w,2,e,b,,,web.png
+7,7.2,Extended spellings,1,kiss,k,2,i,ss,,,kiss.png
+7,7.2,Extended spellings,2,till,t,2,i,ll,,,till.png
+7,7.2,Extended spellings,3,six,s,2,i,x,,,six.png
+7,7.2,Extended spellings,4,gull,g,2,u,ll,,,gull.png
+8,8.3,3-4 spelling units,1,ant,a,2,n,t,,,ant.png
+8,8.3,3-4 spelling units,2,vest,v,3,e,s,t,,vest.png
+8,8.3,3-4 spelling units,3,tent,t,3,e,n,t,,tent.png
+8,8.3,3-4 spelling units,4,taps,t,3,a,p,s,,taps.png
+9,9.2,4 spelling units,1,slug,s,3,l,u,g,,slug.png
+9,9.2,4 spelling units,2,flag,f,3,l,a,g,,flag.png
+9,9.2,4 spelling units,3,pram,p,3,r,a,m,,pram.png
+9,9.2,4 spelling units,4,cliff,c,3,l,i,ff,,cliff.png
+10,10.3,5 spelling units,1,hands,h,4,a,n,d,s,hands.png
+10,10.3,5 spelling units,2,trunk,t,4,r,u,n,k,trunk.png
+10,10.3,5 spelling units,3,steps,s,4,t,e,p,s,steps.png
+10,10.3,5 spelling units,4,lamps,l,4,a,m,p,s,lamps.png
+11,11.2,sh,1,ship,sh,2,i,p,,,ship.png
+11,11.2,sh,2,fish,f,2,i,sh,,,fish.png
+11,11.2,sh,3,brush,b,3,r,u,sh,,brush.png
+11,11.2,sh,4,dish,d,2,i,sh,,,dish.png
+12,11.15,ch,1,bench,b,3,e,n,ch,,bench.png
+12,11.15,ch,2,pinch,p,3,i,n,ch,,pinch.png
+12,11.15,ch,3,punch,p,3,u,n,ch,,punch.png
+12,11.15,ch,4,chips,fish and,4,ch,i,p,s,chips.png
+13,11.28,th (unvoiced),1,moth,m,2,o,th,,,moth.png
+13,11.28,th (unvoiced),2,broth,b,3,r,o,th,,broth.png
+13,11.28,th (unvoiced),3,froth,f,3,r,o,th,,froth.png
+13,11.28,th (unvoiced),4,sixth,s,3,i,x,th,,sixth.png
+14,11.53,ng,1,king,k,2,i,ng,,,king.png
+14,11.53,ng,2,wing,w,2,i,ng,,,wing.png
+14,11.53,ng,3,swing,s,3,w,i,ng,,swing.png
+14,11.53,ng,4,ring,r,2,i,ng,,,ring.png
