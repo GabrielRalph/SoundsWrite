@@ -1,0 +1,9 @@
+{
+  "name": "Word Writer",
+  "title": "Word Writer",
+  "subtitle": "Word Writer",
+  "version": "1.0.0",
+  "description": "Build words interactively.",
+  "author": "Squidly + Gabriel Ralph + SoundsWrite",
+  "icon": "../Assets/WordBuilder/icon.png"
+}
