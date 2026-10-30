@@ -4,5 +4,5 @@
   "subtitle": "Sounds Write",
   "version": "1.0.0",
   "author": "SoundsWrite + Micheal + Squidly",
-  "icon": "../Assets/FourInARow/icon.png"
+  "icon": "./icon.svg"
 }
